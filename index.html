@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Shape Visualizer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>3D Shape Visualizer</h1>
+        <div class="controls">
+            <div class="shape-selector">
+                <label for="shape-select">Select Shape:</label>
+                <select id="shape-select">
+                    <option value="sphere">Sphere</option>
+                    <option value="rectangular-prism">Rectangular Prism</option>
+                    <option value="cylinder">Cylinder</option>
+                </select>
+            </div>
+            <div class="interaction-controls">
+                <button id="resize-btn">Resize</button>
+                <button id="color-btn">Change Color</button>
+            </div>
+            <div id="dimension-controls" class="hidden">
+                <div id="sphere-controls" class="shape-controls">
+                    <label for="sphere-radius">Radius:</label>
+                    <input type="number" id="sphere-radius" min="0.1" max="5" step="0.1" value="1">
+                </div>
+                <div id="rectangular-prism-controls" class="shape-controls">
+                    <label for="prism-width">Width:</label>
+                    <input type="number" id="prism-width" min="0.1" max="5" step="0.1" value="1">
+                    <label for="prism-height">Height:</label>
+                    <input type="number" id="prism-height" min="0.1" max="5" step="0.1" value="1">
+                    <label for="prism-depth">Depth:</label>
+                    <input type="number" id="prism-depth" min="0.1" max="5" step="0.1" value="1">
+                </div>
+                <div id="cylinder-controls" class="shape-controls">
+                    <label for="cylinder-radius">Radius:</label>
+                    <input type="number" id="cylinder-radius" min="0.1" max="5" step="0.1" value="0.5">
+                    <label for="cylinder-height">Height:</label>
+                    <input type="number" id="cylinder-height" min="0.1" max="5" step="0.1" value="1">
+                </div>
+            </div>
+            <div id="color-controls" class="hidden">
+                <label for="color-picker">Color:</label>
+                <input type="color" id="color-picker" value="#ff0000">
+            </div>
+        </div>
+        <div id="canvas-container"></div>
+        <div id="info-panel">
+            <h3>Shape Information</h3>
+            <p id="volume-info">Volume: </p>
+            <p id="surface-area-info">Surface Area: </p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
