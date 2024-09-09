@@ -6,12 +6,16 @@ let previousMousePosition = { x: 0, y: 0 };
 function init() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize(document.getElementById('canvas-container').clientWidth, 400);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(document.getElementById('canvas-container').clientWidth, document.getElementById('canvas-container').clientHeight);
+    renderer.setClearColor(0xffffff);
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-    const light = new THREE.PointLight(0xffffff, 1, 100);
-    light.position.set(0, 0, 10);
+    const ambientLight = new THREE.AmbientLight(0x404040);
+    scene.add(ambientLight);
+
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(1, 1, 1).normalize();
     scene.add(light);
 
     camera.position.z = 5;
@@ -21,13 +25,10 @@ function init() {
 
     window.addEventListener('resize', onWindowResize, false);
     
-    // Add event listeners for mouse-based rotation
     renderer.domElement.addEventListener('mousedown', onMouseDown, false);
     renderer.domElement.addEventListener('mousemove', onMouseMove, false);
     renderer.domElement.addEventListener('mouseup', onMouseUp, false);
     renderer.domElement.addEventListener('mouseleave', onMouseUp, false);
-
-    // Add event listener for scroll-based zooming
     renderer.domElement.addEventListener('wheel', onMouseWheel, false);
 }
 
@@ -58,11 +59,20 @@ function createShape() {
             break;
     }
 
-    const material = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true });
+    const color = document.getElementById('color-picker').value;
+    const opacity = parseFloat(document.getElementById('opacity-slider').value);
+    const isGridlike = document.getElementById('grid-toggle').checked;
+
+    const material = new THREE.MeshPhongMaterial({ 
+        color: color,
+        transparent: true,
+        opacity: opacity,
+        wireframe: isGridlike
+    });
+
     shape = new THREE.Mesh(geometry, material);
     scene.add(shape);
 
-    // Add axes
     axes = new THREE.AxesHelper(Math.max(shape.geometry.parameters.width, shape.geometry.parameters.height, shape.geometry.parameters.depth) * 0.6);
     shape.add(axes);
 
@@ -75,9 +85,9 @@ function animate() {
 }
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = document.getElementById('canvas-container').clientWidth / document.getElementById('canvas-container').clientHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(document.getElementById('canvas-container').clientWidth, 400);
+    renderer.setSize(document.getElementById('canvas-container').clientWidth, document.getElementById('canvas-container').clientHeight);
 }
 
 function updateShapeInfo() {
@@ -109,32 +119,21 @@ function updateShapeInfo() {
 
 document.getElementById('shape-select').addEventListener('change', (e) => {
     currentShape = e.target.value;
+    document.querySelectorAll('.shape-controls').forEach(el => el.style.display = 'none');
+    document.getElementById(`${currentShape}-controls`).style.display = 'flex';
     createShape();
-    document.querySelectorAll('.shape-controls').forEach(el => el.classList.remove('active'));
-    document.getElementById(`${currentShape}-controls`).classList.add('active');
 });
 
-document.getElementById('resize-btn').addEventListener('click', () => {
-    document.getElementById('dimension-controls').classList.remove('hidden');
-    document.getElementById('color-controls').classList.add('hidden');
-    updateActiveButton('resize-btn');
+document.getElementById('color-picker').addEventListener('change', () => {
+    createShape();
 });
 
-document.getElementById('color-btn').addEventListener('click', () => {
-    document.getElementById('dimension-controls').classList.add('hidden');
-    document.getElementById('color-controls').classList.remove('hidden');
-    updateActiveButton('color-btn');
+document.getElementById('grid-toggle').addEventListener('change', () => {
+    createShape();
 });
 
-function updateActiveButton(activeId) {
-    document.querySelectorAll('.interaction-controls button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.getElementById(activeId).classList.add('active');
-}
-
-document.getElementById('color-picker').addEventListener('change', (e) => {
-    shape.material.color.setHex(parseInt(e.target.value.substr(1), 16));
+document.getElementById('opacity-slider').addEventListener('input', () => {
+    createShape();
 });
 
 ['sphere-radius', 'prism-width', 'prism-height', 'prism-depth', 'cylinder-radius', 'cylinder-height'].forEach(id => {
@@ -161,8 +160,13 @@ function onMouseMove(event) {
 
     const rotationSpeed = 0.005;
 
-    shape.rotation.y += deltaMove.x * rotationSpeed;
-    shape.rotation.x += deltaMove.y * rotationSpeed;
+    if (currentShape === 'cylinder') {
+        shape.rotation.y += deltaMove.x * rotationSpeed;
+        shape.rotation.z += deltaMove.y * rotationSpeed;
+    } else {
+        shape.rotation.y += deltaMove.x * rotationSpeed;
+        shape.rotation.x += deltaMove.y * rotationSpeed;
+    }
 
     previousMousePosition = {
         x: event.clientX,
@@ -181,14 +185,15 @@ function onMouseWheel(event) {
     const minZoom = 1;
     const maxZoom = 10;
 
-    // Determine zoom direction
     const zoomAmount = event.deltaY > 0 ? zoomSpeed : -zoomSpeed;
 
-    // Update camera position
     camera.position.z = Math.max(minZoom, Math.min(maxZoom, camera.position.z + zoomAmount));
 
-    // Update camera
     camera.updateProjectionMatrix();
 }
 
 init();
+
+// Initially hide all shape controls except for the default (sphere)
+document.querySelectorAll('.shape-controls').forEach(el => el.style.display = 'none');
+document.getElementById('sphere-controls').style.display = 'flex';
